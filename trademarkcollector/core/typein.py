@@ -1,4 +1,6 @@
 # coding=utf8
+import random, time
+
 
 #
 # await page.type('input#kw.s_ipt','python')
@@ -19,6 +21,7 @@ def click_search(brower_pypp, search_symbol):
 def type_and_click(brower_pypp, key_element_location_dict, search_symbol):
     for loc, s_str in key_element_location_dict.items():
         brower_pypp.type(loc, s_str)
+        time.sleep(0.28 + random.random())
     brower_pypp.click(search_symbol)
 
     return brower_pypp
