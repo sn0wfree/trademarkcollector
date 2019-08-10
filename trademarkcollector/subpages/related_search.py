@@ -78,3 +78,7 @@ def click_search_botton_autosearch(brows, css=xpath_autosearch['查询'][-1]):
 
 def click_reset_botton_autosearch(brows, css=xpath_autosearch['重填'][-1]):
     click_some(brows, css)
+
+
+# ----------
+css = "html.ng-scope body form#querylist.form-inline.ng-pristine.ng-valid div#mGrid_listGrid.ng-scope div#list_box.list_box table"

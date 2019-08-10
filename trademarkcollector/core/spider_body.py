@@ -37,7 +37,6 @@ class SpiderSession(object):
                 option.add_argument(v)
 
         if headless:
-
             option.add_argument('headless')
         pass
 
@@ -51,12 +50,22 @@ class SpiderSession(object):
     def create_driver_Firefox(executable_path, headless=True, **other_kwargs):
         option = webdriver.FirefoxOptions()
         if other_kwargs is not None:
+
             for k, v in other_kwargs.items():
                 print('add argument {}'.format(k))
-                option.add_argument(v)
+                if k == 'proxy':
+                    '--proxy-server=http://{ip}:{port}'
+                    IP, PORT = v.split('--proxy-server=http://')[-1].split(':')
+
+                    option.set_preference('network.proxy.type', 1)
+                    option.set_preference('network.proxy.http', IP)  # IP为你的代理服务器地址:如‘127.0.0.0’，字符串类型
+                    option.set_preference('network.proxy.http_port', PORT)  # PORT为代理服务器端口号:如，9999，整数类型
+                    # print(1)
+                else:
+
+                    option.add_argument(v)
 
         if headless:
-
             option.add_argument('headless')
 
         driver = webdriver.Firefox(executable_path, firefox_options=option)
@@ -72,7 +81,7 @@ class SpiderSession(object):
             driver = cls._adaptive(driver, adaptive=adaptive)
         elif core == 'Firefox':
             driver = cls.create_driver_Firefox(executable_path, headless=headless, **other_kwargs)
-            # driver = cls._adaptive(driver, adaptive=adaptive)
+            driver = cls._adaptive(driver, adaptive=adaptive)
 
         else:
             raise ValueError('unsupported driver!')
@@ -80,9 +89,12 @@ class SpiderSession(object):
 
 
 if __name__ == '__main__':
+    from trademarkcollector.core import proxy
     # SpiderSession.create_session(executable_path='tyc_finder/drivers/chromedriver_mac')
-    chromedriver_mac_path = '/Users/sn0wfree/PycharmProjects/trademarkcollector/trademarkcollector/drivers/chromedriver_mac'
-
-    spider = Spider(chromedriver_mac_path, headless=False)
+    # chromedriver_mac_path = '/Users/sn0wfree/PycharmProjects/trademarkcollector/trademarkcollector/drivers/chromedriver_mac'
+    ip, port = proxy.get_proxy()#
+    # ip, port = '182.116.234.169', '9999'
+    spider = Spider(None, headless=False, core='Firefox',proxy='--proxy-server=http://{ip}:{port}'.format(ip=ip, port=port))
+    spider.driver.get("http://httpbin.org/ip")
 
     pass
