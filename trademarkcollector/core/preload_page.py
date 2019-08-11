@@ -1,10 +1,9 @@
 # coding=utf8
-
-
-web_address = 'http://sbj.cnipa.gov.cn/sbcx/'
-
 import time
-from selenium.webdriver.common.keys import Keys
+
+from selenium.common.exceptions import NoSuchElementException
+
+from trademarkcollector.paras.errors import IPError
 
 
 def open_sbw_prefix_page(driver, web_address='http://sbj.cnipa.gov.cn/sbcx/', stop_time=3.5):
@@ -12,13 +11,17 @@ def open_sbw_prefix_page(driver, web_address='http://sbj.cnipa.gov.cn/sbcx/', st
     time.sleep(stop_time)
     # local agree bottom
     xpath = '/html/body/div/div[5]/div[1]/div[1]/div/p[4]/a'  # /tbody/tr/td[1]/div/p
-    driver.find_element_by_xpath(xpath).click()
+    try:
+        driver.find_element_by_xpath(xpath).click()
+    except NoSuchElementException as e:
+        raise IPError('something wrong at ip, please change ip and retry')
 
 
 if __name__ == '__main__':
     from trademarkcollector.core.spider_body import Spider
-    chromedriver_mac_path = '/Users/sn0wfree/PycharmProjects/trademarkcollector/trademarkcollector/drivers/chromedriver_mac'
-    firefoxdriver_mac_path = '/Users/sn0wfree/PycharmProjects/trademarkcollector/trademarkcollector/drivers/geckodriver'
+
+    # chromedriver_mac_path = '/Users/sn0wfree/PycharmProjects/trademarkcollector/trademarkcollector/drivers/chromedriver_mac'
+    # firefoxdriver_mac_path = '/Users/sn0wfree/PycharmProjects/trademarkcollector/trademarkcollector/drivers/geckodriver'
 
     spider = Spider(None, headless=False, core='Firefox')
     open_sbw_prefix_page(spider.driver)

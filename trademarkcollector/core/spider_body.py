@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
-import time
-import re
-import pandas as pd
-from bs4 import BeautifulSoup
 from selenium import webdriver
-from collections import OrderedDict
 
 __author__ = 'sn0wfree'
 
@@ -13,6 +8,7 @@ class Spider(object):
     def __init__(self, driver_path, headless=True, core='Chrome', **other_kwargs):
         self.driver = SpiderSession.create_driver(driver_path, core=core, headless=headless, adaptive=False,
                                                   **other_kwargs)
+        self.driver.implicitly_wait(10)
         pass
 
 
@@ -49,17 +45,20 @@ class SpiderSession(object):
     @staticmethod
     def create_driver_Firefox(executable_path, headless=True, **other_kwargs):
         option = webdriver.FirefoxOptions()
+        firefoxprofile = webdriver.FirefoxProfile()
         if other_kwargs is not None:
 
             for k, v in other_kwargs.items():
                 print('add argument {}'.format(k))
                 if k == 'proxy':
+
                     '--proxy-server=http://{ip}:{port}'
                     IP, PORT = v.split('--proxy-server=http://')[-1].split(':')
 
-                    option.set_preference('network.proxy.type', 1)
-                    option.set_preference('network.proxy.http', IP)  # IP为你的代理服务器地址:如‘127.0.0.0’，字符串类型
-                    option.set_preference('network.proxy.http_port', PORT)  # PORT为代理服务器端口号:如，9999，整数类型
+                    firefoxprofile.set_preference('network.proxy.type', 1)
+                    firefoxprofile.set_preference('network.proxy.http', IP)  # IP为你的代理服务器地址:如‘127.0.0.0’，字符串类型
+                    firefoxprofile.set_preference('network.proxy.http_port', int(PORT))  # PORT为代理服务器端口号:如，9999，整数类型
+                    firefoxprofile.update_preferences()
                     # print(1)
                 else:
 
@@ -68,7 +67,8 @@ class SpiderSession(object):
         if headless:
             option.add_argument('headless')
 
-        driver = webdriver.Firefox(executable_path, firefox_options=option)
+        driver = webdriver.Firefox(executable_path="geckodriver", firefox_profile=firefoxprofile,
+                                   firefox_options=option)
         # else:
         #     driver = webdriver.Firefox(executable_path)
 
@@ -89,12 +89,14 @@ class SpiderSession(object):
 
 
 if __name__ == '__main__':
-    from trademarkcollector.core import proxy
+    from trademarkcollector.core.proxy import get_proxy
+
     # SpiderSession.create_session(executable_path='tyc_finder/drivers/chromedriver_mac')
     # chromedriver_mac_path = '/Users/sn0wfree/PycharmProjects/trademarkcollector/trademarkcollector/drivers/chromedriver_mac'
-    ip, port = proxy.get_proxy()#
-    # ip, port = '182.116.234.169', '9999'
-    spider = Spider(None, headless=False, core='Firefox',proxy='--proxy-server=http://{ip}:{port}'.format(ip=ip, port=port))
+    ip, port = get_proxy()
+
+    spider = Spider(None, headless=False, core='Firefox',
+                    proxy='--proxy-server=http://{ip}:{port}'.format(ip=ip, port=port))
     spider.driver.get("http://httpbin.org/ip")
 
     pass
