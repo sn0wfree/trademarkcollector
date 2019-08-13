@@ -1,8 +1,9 @@
 # coding=utf8
-import time
+import time, random
 
 from selenium.common.exceptions import NoSuchElementException
-
+from trademarkcollector.subpages.related_search import type_in_nation_category, type_in_mark_name, \
+    click_search_botton_autosearch
 from trademarkcollector.core.preload_page import open_sbw_prefix_page
 from trademarkcollector.core.proxy import get_proxy
 from trademarkcollector.core.spider_body import Spider
@@ -10,6 +11,8 @@ from trademarkcollector.core.windowholder import WindowsHolder
 from trademarkcollector.paras.errors import IPError, BlockedIPError, GatewayTimeoutError
 from trademarkcollector.paras.public_stop_time import stop
 from trademarkcollector.subpages.subpages_paras import main_nav_dict
+from selenium.webdriver.common.action_chains import ActionChains
+import pandas as pd
 
 
 class PrepareSBW(object):
@@ -134,30 +137,27 @@ class SBW(PrepareSBW):
         self._go_general_func(name='goods_service')
 
 
-
 # @retry(Exception, tries=4, delay=3, backoff=2)
 def do_one_search(web_address='http://sbj.cnipa.gov.cn/sbcx/'):
-    from trademarkcollector.subpages.related_search import type_in_nation_category, type_in_mark_name, \
-        click_search_botton_autosearch
     count = 5
     while count:
         try:
             sbw = SBW(web_address)
 
             sbw.preload()
-            time.sleep(3)
+            time.sleep(.1)
             sbw.go_related_search()
             print('error:', sbw.check_block_ip_error_status())
             brows = sbw.spider.driver
-            time.sleep(1)
+            time.sleep(2 + random.random() * 3)
             type_in_nation_category(brows, key=9)
             print('error:', sbw.check_block_ip_error_status())
-            time.sleep(1)
+            time.sleep(2 + random.random() * 3)
             type_in_mark_name(brows, keys='大润发')
             print('error:', sbw.check_block_ip_error_status())
 
-            time.sleep(3)
-            click_search_botton_autosearch(brows)
+            time.sleep(1.2 + random.random() * 3)
+            click_search_botton_autosearch(brows, retry=False)
             print('error:', sbw.check_block_ip_error_status())
             sbw.windows.add('result1')
             break
@@ -178,15 +178,56 @@ if __name__ == '__main__':
 
     sbw = do_one_search(web_address=web_address)
 
-    sbw.spider.driver.switch_to_window(sbw.spider.driver.window_handles[-1])
+    co = sbw.windows.window_handle_code_holder['result1']
+
+    sbw.spider.driver.switch_to_window(co)
+    try:
+        sbw.check_block_ip_error_status()
+        sbw.check_gateway_timeout_error_status()
+    except (BlockedIPError, GatewayTimeoutError) as e:
+        co2 = sbw.windows.window_handle_code_holder['related_search']
+        sbw.spider.driver.switch_to_window(co2)
+        click_search_botton_autosearch(sbw.spider.driver, retry=False)
+        co = sbw.windows.window_handle_code_holder['result1']
+        sbw.spider.driver.switch_to_window(co)
+    else:
+        pass
     # s = sbw.get_page_source()
     time.sleep(10)
+    # search page table
     df = parse_table(sbw.get_page_source())
     tests = sbw.spider.driver.find_elements_by_xpath('//*/table/tbody/tr[@class="ng-scope"]')
     test = tests[0]
     ordernum = test.text.split(' ')[0]
 
-    test.find_element_by_xpath('//*/td[@class="lwtd0"]/a').click() # click one item into next page
+    test.find_element_by_xpath('//*/td[@class="lwtd0"]/a').click()  # click one item into next page
+    sbw.windows.add(name='detail_pages_info_handles_code')
+    sbw.spider.driver.switch_to_window(sbw.spider.driver.window_handles[-1])
+    time.sleep(10 + random.random())
+    source = sbw.get_page_source()
+    # parse related pages detail infor
+    from trademarkcollector.subpages.related_search import ParseRelatedGroup
+
+    t1, t2, t3 = ParseRelatedGroup.parse_first_table(source)
+    # ------------------
+    # parse trademark process
+    # // *[ @ id = "txnDetail2"]
+    trademark_process_button = sbw.spider.driver.find_element_by_xpath(
+        '//*[@id="txnDetail2"]').click()
+    time.sleep(1.3 + random.random())
+
+    trademark_process_source = sbw.get_page_source()
+
+    # search_button = brows.find_element_by_css_selector(css)
+
+    sss = pd.read_html(trademark_process_source)
+    cols = ['申请/注册号', '业务名称', '环节名称', '结论', '日期']
+    identification_info = sss[0].values.ravel()[0]
+    process_df = pd.concat(sss[1:])
+    process_df.columns = cols
+
+    # ActionChains(sbw.spider.driver).move_to_element(trademark_process_button).click(trademark_process_button)
+    # click_some(brows, css)
 
     # import pickle
     #
