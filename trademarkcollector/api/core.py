@@ -1,18 +1,19 @@
 # coding=utf8
-import time, random
+import random
+import time
 
+import pandas as pd
 from selenium.common.exceptions import NoSuchElementException
-from trademarkcollector.subpages.related_search import type_in_nation_category, type_in_mark_name, \
-    click_search_botton_autosearch
+
 from trademarkcollector.core.preload_page import open_sbw_prefix_page
 from trademarkcollector.core.proxy import get_proxy
 from trademarkcollector.core.spider_body import Spider
 from trademarkcollector.core.windowholder import WindowsHolder
 from trademarkcollector.paras.errors import IPError, BlockedIPError, GatewayTimeoutError
 from trademarkcollector.paras.public_stop_time import stop
+from trademarkcollector.subpages.related_search import type_in_nation_category, type_in_mark_name, \
+    click_search_botton_autosearch
 from trademarkcollector.subpages.subpages_paras import main_nav_dict
-from selenium.webdriver.common.action_chains import ActionChains
-import pandas as pd
 
 
 class PrepareSBW(object):
