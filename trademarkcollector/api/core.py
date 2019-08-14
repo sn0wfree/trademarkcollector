@@ -138,6 +138,64 @@ class SBW(PrepareSBW):
         self._go_general_func(name='goods_service')
 
 
+class RelatedSearchProcess(object):
+    def __init__(self,web_address, headless=False, ip_port=None, core='Firefox'):
+        self.browser_params_dict = dict(web_address=web_address,headless=headless,ip_port=ip_port,core=core)
+        self.browser = self.init_browser
+        self.browser.preload()
+        self._retry=False
+        pass
+    @property
+    def init_browser(self):
+        browser = SBW(**self.browser_params_dict)
+        return browser
+        
+    def reload_browser(self):
+        self.browser = SBW(**self.browser_params_dict)
+        self.browser.preload()
+        time.sleep(.1)
+        
+    def go_related_search(self,checkip=True):
+        self.browser.go_related_search()
+        if checkip:
+            self.browser.check_block_ip_error_status()
+            time.sleep(2 + random.random() * 3)
+        return self
+    
+    def type_process_related_search(self,nation_category_key=9,mark_name_keys='大润发'):
+        brows = self.browser.spider.driver
+        type_in_nation_category(brows, key=nation_category_key)
+        time.sleep(2 + random.random() * 3)
+        type_in_mark_name(brows, keys=mark_name_keys)
+        time.sleep(1.2 + random.random() * 3)
+        click_search_botton_autosearch(brows, retry=False)
+        status = self.browser.check_block_ip_error_status()
+        print('error: {}'.format(status))
+        self.browser.windows.add('result1')
+        
+     def goto_related_page_and_type_in(self,checkip=True,nation_category_key=9,mark_name_keys='大润发'):
+        if self._retry:
+            self.reload_browser()
+        try:
+            self.go_related_search(checkip=checkip)
+            self.type_process_related_search(nation_category_key=nation_category_key,mark_name_keys=mark_name_keys)
+            
+#             co = self.browser.windows.window_handle_code_holder['result1']
+
+#             self.browser.spider.driver.switch_to_window(co)
+            self.browser.check_block_ip_error_status()
+            self.browser.check_gateway_timeout_error_status()
+        except (IPError, BlockedIPError, GatewayTimeoutError, NoSuchElementException) as e:
+            self._retry = True
+            self.browser.spider.driver.quit()
+            print('retry')
+            
+        
+        
+        
+    
+    
+        
 # @retry(Exception, tries=4, delay=3, backoff=2)
 def do_one_search(web_address='http://sbj.cnipa.gov.cn/sbcx/'):
     count = 5
