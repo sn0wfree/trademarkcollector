@@ -36,6 +36,7 @@ def send_keys(brows, loc, key):
 
 
 def type_in_nation_category(brows, key=9):
+    print('sent key to nation_category: {}'.format(key))
     if isinstance(key, int):
         pass
     else:
@@ -44,6 +45,7 @@ def type_in_nation_category(brows, key=9):
 
 
 def type_in_related_group(brows, key=9):
+    print('sent key to nation_category: {}'.format(key))
     # if isinstance(key, int):
     #     pass
     # else:
@@ -52,6 +54,7 @@ def type_in_related_group(brows, key=9):
 
 
 def type_in_mark_name(brows, keys='大发'):
+    print('sent key to nation_category: {}'.format(keys))
     if is_all_chinese(keys):
         pass
     else:
@@ -63,13 +66,15 @@ def type_in_mark_name(brows, keys='大发'):
 
 
 def click_search_botton_autosearch(brows, css=xpath_autosearch['查询'][-1], retry=False):
+    print('click search botton')
     search_button = brows.find_element_by_css_selector(css)
     time.sleep(1.3)
     ActionChains(brows).move_to_element(search_button).click(search_button)
     click_some(brows, css)
     if retry:
-        time.sleep(2+random.random() * 10)
-        click_some(brows, css)
+        time.sleep(2 + random.random() * 10)
+        # click_some(brows, css)
+        return click_some, brows, css
 
 
 def click_reset_botton_autosearch(brows, css=xpath_autosearch['重填'][-1]):
