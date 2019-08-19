@@ -54,7 +54,7 @@ def type_in_related_group(brows, key=9):
 
 
 def type_in_mark_name(brows, keys='大发'):
-    print('sent key to nation_category: {}'.format(keys))
+    print('sent key to mark_name: {}'.format(keys))
     if is_all_chinese(keys):
         pass
     else:
@@ -126,7 +126,18 @@ class ParseRelatedGroup(object):
 
         return table_related_df_s, detail_info, table_common_own
 
+def parse_related_search_detail_pages_info(source):
+    t1, t2, t3 = ParseRelatedGroup.parse_first_table(source)
+    return t1, t2, t3
 
+def parse_related_search_detail_pages_process(trademark_process_source):
+    # trademark_process_source = sbw.get_page_source()
+    sss = pd.read_html(trademark_process_source)
+    cols = ['申请/注册号', '业务名称', '环节名称', '结论', '日期']
+    identification_info = sss[0].values.ravel()[0]
+    process_df = pd.concat(sss[1:])
+    process_df.columns = cols
+    return process_df, identification_info
 # ----------
 # css = "html.ng-scope body form#querylist.form-inline.ng-pristine.ng-valid div#mGrid_listGrid.ng-scope div#list_box.list_box table"
 

@@ -1,7 +1,7 @@
 # coding=utf8
 import time
 
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, NoAlertPresentException
 
 from trademarkcollector.paras.errors import IPError
 
@@ -9,6 +9,8 @@ from trademarkcollector.paras.errors import IPError
 def open_sbw_prefix_page(driver, web_address='http://sbj.cnipa.gov.cn/sbcx/', stop_time=3.5):
     driver.get(web_address)
     time.sleep(stop_time)
+
+    # return False
     # local agree bottom
     xpath = '/html/body/div/div[5]/div[1]/div[1]/div/p[4]/a'  # /tbody/tr/td[1]/div/p
     try:
